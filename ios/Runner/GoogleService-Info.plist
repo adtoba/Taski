@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>130946680957-m756ro44vo3vkom70dqrd10jvk3cieg7.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.130946680957-m756ro44vo3vkom70dqrd10jvk3cieg7</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>130946680957-fvkathqags3edmat9ia5umbqa4ld376r.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCWUBzOctntIOsCa6o1WkOk3cjZM5rRRrc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>130946680957</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.taski.taski</string>
+	<key>PROJECT_ID</key>
+	<string>taski-5e760</string>
+	<key>STORAGE_BUCKET</key>
+	<string>taski-5e760.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:130946680957:ios:e98b8b3b8e53a7112b0914</string>
+</dict>
+</plist>

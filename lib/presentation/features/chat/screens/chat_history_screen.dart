@@ -1,88 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taski/core/providers/sessions_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/chat/widgets/chat_history_item_widget.dart';
 import 'package:taski/presentation/widgets/dual_input_widget.dart';
 import 'package:taski/presentation/features/chat/screens/chat_detail_screen.dart';
 
-class ChatHistoryScreen extends StatefulWidget {
+import '../../../../domain/models/session.dart';
+
+class ChatHistoryScreen extends ConsumerStatefulWidget {
   const ChatHistoryScreen({super.key});
 
   @override
-  State<ChatHistoryScreen> createState() => _ChatHistoryScreenState();
+  ConsumerState<ChatHistoryScreen> createState() => _ChatHistoryScreenState();
 }
 
-class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
+class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
   // Sample chat history data
-  final List<Map<String, dynamic>> _chatHistory = [
-    {
-      'id': '1',
-      'query': 'Direction to embassy of Indonesia',
-      'response': 'The embassy is located at 123 Main Street...',
-      'timestamp': DateTime.now().subtract(Duration(hours: 2)),
-      'type': 'location',
-      'isFavorite': false,
-    },
-    {
-      'id': '2',
-      'query': 'Contact number for the embassy of Indonesia',
-      'response': 'You can reach them at +1-234-567-8900...',
-      'timestamp': DateTime.now().subtract(Duration(hours: 4)),
-      'type': 'contact',
-      'isFavorite': true,
-    },
-    {
-      'id': '3',
-      'query': 'Operating hours of the embassy of Indonesia',
-      'response': 'The embassy is open Monday to Friday, 9 AM to 5 PM...',
-      'timestamp': DateTime.now().subtract(Duration(days: 1)),
-      'type': 'hours',
-      'isFavorite': false,
-    },
-    {
-      'id': '4',
-      'query': 'Website link for the embassy of Indonesia',
-      'response': 'You can visit their official website at...',
-      'timestamp': DateTime.now().subtract(Duration(days: 1, hours: 3)),
-      'type': 'website',
-      'isFavorite': false,
-    },
-    {
-      'id': '5',
-      'query': 'Email address for the embassy of Indonesia',
-      'response': 'You can email them at embassy@indonesia.gov...',
-      'timestamp': DateTime.now().subtract(Duration(days: 2)),
-      'type': 'contact',
-      'isFavorite': true,
-    },
-    {
-      'id': '6',
-      'query': 'Location of the embassy of Indonesia',
-      'response': 'The embassy is situated in the downtown area...',
-      'timestamp': DateTime.now().subtract(Duration(days: 3)),
-      'type': 'location',
-      'isFavorite': false,
-    },
-    {
-      'id': '7',
-      'query': 'Visa requirements for Indonesia',
-      'response': 'For tourist visas, you need a valid passport...',
-      'timestamp': DateTime.now().subtract(Duration(days: 5)),
-      'type': 'visa',
-      'isFavorite': true,
-    },
-    {
-      'id': '8',
-      'query': 'Document requirements for visa application',
-      'response': 'You will need to provide the following documents...',
-      'timestamp': DateTime.now().subtract(Duration(days: 6)),
-      'type': 'documents',
-      'isFavorite': false,
-    },
-  ];
+  // final List<Map<String, dynamic>> _chatHistory = [
+  //   {
+  //     'id': '1',
+  //     'query': 'Direction to embassy of Indonesia',
+  //     'response': 'The embassy is located at 123 Main Street...',
+  //     'timestamp': DateTime.now().subtract(Duration(hours: 2)),
+  //     'type': 'location',
+  //     'isFavorite': false,
+  //   },
+  //   {
+  //     'id': '2',
+  //     'query': 'Contact number for the embassy of Indonesia',
+  //     'response': 'You can reach them at +1-234-567-8900...',
+  //     'timestamp': DateTime.now().subtract(Duration(hours: 4)),
+  //     'type': 'contact',
+  //     'isFavorite': true,
+  //   },
+  //   {
+  //     'id': '3',
+  //     'query': 'Operating hours of the embassy of Indonesia',
+  //     'response': 'The embassy is open Monday to Friday, 9 AM to 5 PM...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 1)),
+  //     'type': 'hours',
+  //     'isFavorite': false,
+  //   },
+  //   {
+  //     'id': '4',
+  //     'query': 'Website link for the embassy of Indonesia',
+  //     'response': 'You can visit their official website at...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 1, hours: 3)),
+  //     'type': 'website',
+  //     'isFavorite': false,
+  //   },
+  //   {
+  //     'id': '5',
+  //     'query': 'Email address for the embassy of Indonesia',
+  //     'response': 'You can email them at embassy@indonesia.gov...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 2)),
+  //     'type': 'contact',
+  //     'isFavorite': true,
+  //   },
+  //   {
+  //     'id': '6',
+  //     'query': 'Location of the embassy of Indonesia',
+  //     'response': 'The embassy is situated in the downtown area...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 3)),
+  //     'type': 'location',
+  //     'isFavorite': false,
+  //   },
+  //   {
+  //     'id': '7',
+  //     'query': 'Visa requirements for Indonesia',
+  //     'response': 'For tourist visas, you need a valid passport...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 5)),
+  //     'type': 'visa',
+  //     'isFavorite': true,
+  //   },
+  //   {
+  //     'id': '8',
+  //     'query': 'Document requirements for visa application',
+  //     'response': 'You will need to provide the following documents...',
+  //     'timestamp': DateTime.now().subtract(Duration(days: 6)),
+  //     'type': 'documents',
+  //     'isFavorite': false,
+  //   },
+  // ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(sessionProvider).getSessions();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final sessions = ref.watch(sessionProvider).userSessions;
     final textTheme = Theme.of(context).textTheme;
     
     return Scaffold(
@@ -142,7 +155,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           
           // Chat history list
           Expanded(
-            child: _chatHistory.isEmpty
+            child: sessions.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -202,7 +215,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     );
   }
 
-  Widget _buildChatGroup(String title, List<Map<String, dynamic>> chats) {
+  Widget _buildChatGroup(String title, List<Session> chats) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
     
@@ -220,28 +233,21 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
         ),
         YMargin(8),
         ...chats.map((chat) => ChatHistoryItemWidget(
-          query: chat['query'],
-          response: chat['response'],
-          timestamp: chat['timestamp'],
-          type: chat['type'],
-          isFavorite: chat['isFavorite'],
+          title: chat.title ?? "",
+          timestamp: chat.createdAt ?? DateTime.now(),
           onTap: () {
+            ref.read(sessionProvider).setCurrentSessionId(chat.id);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ChatDetailScreen(
-                  query: chat['query'],
-                  response: chat['response'],
-                  timestamp: chat['timestamp'],
-                  type: chat['type'],
+                  query: chat.title ?? "",
+                  response: chat.title ?? "",
+                  timestamp: chat.createdAt ?? DateTime.now(),
+                  type: chat.title ?? "",
                 ),
               ),
             );
-          },
-          onFavorite: () {
-            setState(() {
-              chat['isFavorite'] = !chat['isFavorite'];
-            });
           },
         )),
       ],
@@ -249,23 +255,25 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   }
 
   List<Map<String, dynamic>> _getGroupedChats() {
+    var sessions = ref.watch(sessionProvider).userSessions;
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(Duration(days: 1));
     final weekAgo = today.subtract(Duration(days: 7));
     
-    final todayChats = _chatHistory.where((chat) {
-      final chatDate = DateTime(chat['timestamp'].year, chat['timestamp'].month, chat['timestamp'].day);
+    final todayChats = sessions.where((chat) {
+      final chatDate = DateTime(chat.createdAt!.year, chat.createdAt!.month, chat.createdAt!.day);
       return chatDate.isAtSameMomentAs(today);
     }).toList();
     
-    final yesterdayChats = _chatHistory.where((chat) {
-      final chatDate = DateTime(chat['timestamp'].year, chat['timestamp'].month, chat['timestamp'].day);
+    final yesterdayChats = sessions.where((chat) {
+      final chatDate = DateTime(chat.createdAt!.year, chat.createdAt!.month, chat.createdAt!.day);
       return chatDate.isAtSameMomentAs(yesterday);
     }).toList();
     
-    final olderChats = _chatHistory.where((chat) {
-      final chatDate = DateTime(chat['timestamp'].year, chat['timestamp'].month, chat['timestamp'].day);
+    final olderChats = sessions.where((chat) {
+      final chatDate = DateTime(chat.createdAt!.year, chat.createdAt!.month, chat.createdAt!.day);
       return chatDate.isBefore(yesterday);
     }).toList();
     

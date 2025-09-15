@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taski/core/providers/tasks_provider.dart';
+import 'package:taski/core/providers/task_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
+import 'package:taski/domain/dto/create_task_dto.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/tasks/widgets/task_widget.dart';
 import 'package:taski/presentation/widgets/dual_input_widget.dart';
@@ -25,7 +26,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
     _tabController = TabController(length: 2, vsync: this);
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      ref.read(tasksProvider).getTasks();
+      ref.read(taskProvider).getTasks();
     });
   } 
 
@@ -46,9 +47,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
   }
 
   void _navigateToTaskDetail(int index, bool isCompleted) {
-    var tasks = ref.watch(tasksProvider).tasks;
-    var completedTasks = tasks.where((task) => task['status'] == 'completed').toList();
-    var pendingTasks = tasks.where((task) => task['status'] == 'pending').toList();
+    var tasks = ref.watch(taskProvider).tasks;
+    var completedTasks = tasks.where((task) => task.status == 'completed').toList();
+    var pendingTasks = tasks.where((task) => task.status == 'pending').toList();
 
     final task = isCompleted ? completedTasks[index] : pendingTasks[index];
     
@@ -58,25 +59,25 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
       MaterialPageRoute(
         builder: (context) => TaskDetailScreen(
           task: task,
-          description: task['description'],
-          scheduledTime: task['due_date'],
-          isCompleted: task['status'] == 'completed',
+          description: task.description,
+          scheduledTime: task.dueDate.toIso8601String(),
+          isCompleted: task.status == 'completed',
         ),
       ),
     );
   }
 
   void _markSelectedAsCompleted() {
-    var tasks = ref.watch(tasksProvider).tasks;
-    var pendingTasks = tasks.where((task) => task['status'] == 'pending').toList();
-    var completedTasks = tasks.where((task) => task['status'] == 'completed').toList();
+    var tasks = ref.watch(taskProvider).tasks;
+    var pendingTasks = tasks.where((task) => task.status == 'pending').toList();
+    var completedTasks = tasks.where((task) => task.status == 'completed').toList();
     
     setState(() {
       // Get selected tasks in reverse order to avoid index issues
       final selectedIndices = _selectedTaskIndices.toList()..sort((a, b) => b.compareTo(a));
       
       for (final index in selectedIndices) {
-        ref.read(tasksProvider.notifier).markAsCompleted(pendingTasks[index]['id']);
+        ref.read(taskProvider).markAsCompleted(pendingTasks[index].id);
         // ref.read(tasksProvider.notifier).getTasks();
         // final task = pendingTasks[index];
         // task['isCompleted'] = true;
@@ -90,10 +91,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
   
   @override
   Widget build(BuildContext context) {
-    var tasks = ref.watch(tasksProvider).tasks;
-    var isLoadingTasks = ref.watch(tasksProvider).isLoadingTasks;
-    var pendingTasks = tasks.where((task) => task['status'] == 'pending').toList();
-    var completedTasks = tasks.where((task) => task['status'] == 'completed').toList();
+    var tasks = ref.watch(taskProvider).tasks;
+    var isLoadingTasks = ref.watch(taskProvider).isLoadingTasks;
+    var pendingTasks = tasks.where((task) => task.status == 'pending').toList();
+    var completedTasks = tasks.where((task) => task.status == 'completed').toList();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
@@ -250,20 +251,34 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
                                   ),
                                 ),
                                 YMargin(16),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: config.sw(16),
-                                    vertical: config.sh(8),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    "Add a new task to get started",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: Colors.blue.shade600,
-                                      fontWeight: FontWeight.w500,
+                                InkWell(
+                                  onTap: () {
+                                    var task = CreateTaskDto(
+                                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                      title: 'Testing Tasks', 
+                                      description: 'Testing Tasks Description', 
+                                      priority: 'high', 
+                                      status: 'completed', 
+                                      dueDate: DateTime.now()
+                                    );
+
+                                    ref.read(taskProvider).createTask(task);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: config.sw(16),
+                                      vertical: config.sh(8),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      "Add a new task to get started",
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: Colors.blue.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -283,9 +298,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
                               final task = pendingTasks[index];
                               final isSelected = _selectedTaskIndices.contains(index);
                               return TaskWidget(
-                                description: task['title'],
-                                scheduledTime: task['due_date'],
-                                isCompleted: task['status'] == 'completed',
+                                description: task.title,
+                                scheduledTime: task.dueDate.toIso8601String(),
+                                isCompleted: task.status == 'completed',
                                 isSelected: isSelected,
                                 onSelectionToggle: () => _toggleTaskSelection(index),
                                 onTap: () => _navigateToTaskDetail(index, false),
@@ -453,9 +468,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
                           itemBuilder: (context, index) {
                             final task = completedTasks[index];
                             return TaskWidget(
-                              description: task['title'],
-                              scheduledTime: task['due_date'],
-                              isCompleted: task['status'] == 'completed',
+                              description: task.title,
+                              scheduledTime: task.dueDate.toIso8601String(),
+                              isCompleted: task.status == 'completed',
                               isSelected: false,
                               onSelectionToggle: null, // No selection for completed tasks
                               onTap: () => _navigateToTaskDetail(index, true),

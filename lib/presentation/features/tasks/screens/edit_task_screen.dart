@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:taski/core/providers/tasks_provider.dart';
+import 'package:taski/core/providers/task_provider.dart';
 import 'package:taski/core/services/supabase_service.dart';
 import 'package:taski/core/utils/spacer.dart';
+import 'package:taski/domain/dto/create_task_dto.dart';
+import 'package:taski/domain/models/task_model.dart';
 import 'package:taski/main.dart';
 
 class EditTaskScreen extends ConsumerStatefulWidget {
-  final Map<String, dynamic> task;
+  final TaskModel task;
 
   const EditTaskScreen({
     super.key,
@@ -57,18 +59,18 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
   }
 
   void _initializeControllers() {
-    _titleController = TextEditingController(text: widget.task['title'] ?? '');
-    _descriptionController = TextEditingController(text: widget.task['description'] ?? '');
+    _titleController = TextEditingController(text: widget.task.title);
+    _descriptionController = TextEditingController(text: widget.task.description);
     
     // Handle priority with proper case matching
-    _selectedPriority = _getSafePriorityValue(widget.task['priority']);
+    _selectedPriority = _getSafePriorityValue(widget.task.priority);
     
     // Handle status with proper case matching
-    _selectedStatus = _getSafeStatusValue(widget.task['status']);
+    _selectedStatus = _getSafeStatusValue(widget.task.status);
     
     // Parse the due date
     try {
-      final dueDate = DateTime.parse(widget.task['due_date'] ?? DateTime.now().toIso8601String());
+      final dueDate = DateTime.parse(widget.task.dueDate.toIso8601String());
       _selectedDate = dueDate;
       _selectedTime = TimeOfDay.fromDateTime(dueDate);
     } catch (e) {
@@ -169,16 +171,16 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
         _selectedTime.minute,
       );
 
-      final updatedTask = {
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'priority': _selectedPriority.toLowerCase(),
-        'status': _selectedStatus.toLowerCase(),
-        'due_date': combinedDateTime.toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      };
+      final updatedTask = CreateTaskDto(
+        id: widget.task.id,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        priority: _selectedPriority.toLowerCase(),
+        status: _selectedStatus.toLowerCase(),
+        dueDate: combinedDateTime,
+      );
 
-      await ref.read(tasksProvider.notifier).updateTask(widget.task['id'], updatedTask);
+      await ref.read(taskProvider).updateTask(widget.task.id, updatedTask);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

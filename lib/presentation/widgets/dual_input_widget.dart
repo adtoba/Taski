@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taski/core/providers/messages_provider.dart';
+import 'package:taski/core/providers/sessions_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/main.dart';
 
-class DualInputWidget extends StatefulWidget {
+class DualInputWidget extends ConsumerStatefulWidget {
   const DualInputWidget({super.key});
 
   @override
-  State<DualInputWidget> createState() => _DualInputWidgetState();
+  ConsumerState<DualInputWidget> createState() => _DualInputWidgetState();
 }
 
 enum InputMode { none, text, mic }
 
-class _DualInputWidgetState extends State<DualInputWidget> {
+class _DualInputWidgetState extends ConsumerState<DualInputWidget> {
   InputMode _mode = InputMode.none;
   final TextEditingController _controller = TextEditingController();
   static const Color primaryColor = Color(0xFF2563EB); // A nice blue
@@ -68,6 +71,17 @@ class _DualInputWidgetState extends State<DualInputWidget> {
                         child: TextField(
                           controller: _controller,
                           style: const TextStyle(fontSize: 18),
+                          onSubmitted: (value) {
+                            var messageProvider = ref.read(messagesProvider);
+                            messageProvider.sendMessage(
+                              sessionId: ref.read(sessionProvider).currentSessionId,
+                              content: value,
+                              isUser: true,
+                              type: 'text',
+                            );
+                            _controller.clear();
+                            setState(() => _mode = InputMode.none);
+                          },
                           decoration: InputDecoration(
                             hintText: 'Type your message...',
                             fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
@@ -76,6 +90,7 @@ class _DualInputWidgetState extends State<DualInputWidget> {
                             hintStyle: TextStyle(color: isDark ? Colors.white : Colors.grey.shade400),
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(vertical: 8),
+                            
                           ),
                         ),
                       ),

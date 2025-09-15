@@ -1,11 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:taski/core/utils/dimensions.dart';
+import 'package:taski/firebase_options.dart';
 import 'package:taski/presentation/features/auth/screens/auth_screen.dart';
 import 'package:taski/presentation/features/dashboard/screens/dashboard_layout.dart';
-import 'package:taski/presentation/features/dashboard/screens/dashboard_screen.dart';
 
 final config = SizeConfig();
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -13,6 +15,12 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   await dotenv.load(fileName: '.env');
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
@@ -120,7 +128,7 @@ class MyApp extends StatelessWidget {
       home: Builder(
         builder: (context) {
           SizeConfig.init(context);
-          final user = supabase.auth.currentUser;
+          final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
             return const DashboardLayout();
           }

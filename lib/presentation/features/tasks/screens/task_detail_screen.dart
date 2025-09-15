@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taski/core/providers/tasks_provider.dart';
+import 'package:taski/core/providers/task_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
+import 'package:taski/domain/models/task_model.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/tasks/screens/edit_task_screen.dart';
 
@@ -10,7 +11,7 @@ class TaskDetailScreen extends ConsumerWidget {
   final String scheduledTime;
   final bool isCompleted;
 
-  final Map<String, dynamic> task;
+  final TaskModel task;
 
   const TaskDetailScreen({
     super.key,
@@ -24,7 +25,7 @@ class TaskDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
-    final taskState = ref.watch(tasksProvider);
+    final taskState = ref.watch(taskProvider);
     
     return Scaffold(
       appBar: AppBar(
@@ -101,7 +102,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   ),
                   YMargin(8),
                   Text(
-                    task["title"],
+                    task.title,
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w500,
                       decoration: isCompleted ? TextDecoration.lineThrough : null,
@@ -110,7 +111,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   ),
 
                   YMargin(20),
-                  
+                   
                   // Task Description
                   Text(
                     'Description',
@@ -121,7 +122,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   ),
                   YMargin(8),
                   Text(
-                    task["description"],
+                    task.description,
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w500,
                       decoration: isCompleted ? TextDecoration.lineThrough : null,
@@ -151,7 +152,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   ),
                   YMargin(8),
                   Text(
-                    taskState.formatDateTime(task["due_date"], task["due_date"]),
+                    taskState.formatDateTime(task.dueDate.toIso8601String(), task.dueDate.toIso8601String()),
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -169,8 +170,8 @@ class TaskDetailScreen extends ConsumerWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     // TODO: Implement mark as completed
-                    ref.read(tasksProvider).markAsCompleted(task["id"]);
-                    Navigator.pop(context);
+                    ref.read(taskProvider).markAsCompleted(task.id);
+                    // Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade600,
@@ -205,7 +206,7 @@ class TaskDetailScreen extends ConsumerWidget {
                     
                     // Refresh the task data if edit was successful
                     if (result == true) {
-                      ref.read(tasksProvider.notifier).getTasks();
+                      ref.read(taskProvider.notifier).getTasks();
                     }
                   },
                   style: OutlinedButton.styleFrom(
@@ -233,7 +234,7 @@ class TaskDetailScreen extends ConsumerWidget {
                 child: OutlinedButton(
                   onPressed: () {
                     // TODO: Implement delete task
-                    ref.read(tasksProvider.notifier).deleteTask(task["id"]);
+                    ref.read(taskProvider).deleteTask(task.id);
                     Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:taski/core/providers/tasks_provider.dart';
+import 'package:taski/core/providers/task_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/main.dart';
 
@@ -31,7 +31,7 @@ class TaskWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
-    final taskState = ref.watch(tasksProvider);
+    final taskState = ref.watch(taskProvider);
     
     // Determine color based on completion status
     final Color taskColor = isCompleted ? Colors.green : Colors.blue;

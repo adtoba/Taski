@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:taski/core/services/google_auth_service.dart';
+import 'package:taski/core/utils/navigator.dart';
 import 'package:taski/main.dart';
+import 'package:taski/presentation/features/auth/screens/auth_screen.dart';
 
 class SideMenu extends StatelessWidget {
   final int selectedIndex;
@@ -123,6 +126,8 @@ class SideMenu extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     // Handle logout
+                    GoogleAuthService.signOut();
+                    push(AuthScreen());
                   },
                   icon: Icon(Icons.logout, size: 20),
                   label: Text("Logout"),

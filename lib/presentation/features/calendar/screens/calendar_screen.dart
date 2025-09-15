@@ -29,91 +29,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.initState();
     ref.read(calendarProvider.notifier).listEvents();
   }
-  
-  
-  // // Sample events data
-  // final List<Map<String, dynamic>> _events = [
-  //   {
-  //     'id': '1',
-  //     'title': 'Team Meeting',
-  //     'description': 'Weekly team sync',
-  //     'date': DateTime.now(),
-  //     'time': '10:00 AM',
-  //     'duration': '1 hour',
-  //     'type': 'meeting',
-  //     'color': Colors.blue,
-  //   },
-  //   {
-  //     'id': '2',
-  //     'title': 'Client Call',
-  //     'description': 'Project discussion with client',
-  //     'date': DateTime.now().add(Duration(days: 1)),
-  //     'time': '2:00 PM',
-  //     'duration': '30 min',
-  //     'type': 'call',
-  //     'color': Colors.green,
-  //   },
-  //   {
-  //     'id': '3',
-  //     'title': 'Client Call',
-  //     'description': 'Project discussion with client',
-  //     'date': DateTime.now().add(Duration(days: 1)),
-  //     'time': '2:00 PM',
-  //     'duration': '30 min',
-  //     'type': 'call',
-  //     'color': Colors.green,
-  //   },
-  //   {
-  //     'id': '4',
-  //     'title': 'Client Call',
-  //     'description': 'Project discussion with client',
-  //     'date': DateTime.now().add(Duration(days: 1)),
-  //     'time': '2:00 PM',
-  //     'duration': '30 min',
-  //     'type': 'call',
-  //     'color': Colors.green,
-  //   },
-  //   {
-  //     'id': '5',
-  //     'title': 'Client Call',
-  //     'description': 'Project discussion with client',
-  //     'date': DateTime.now().add(Duration(days: 1)),
-  //     'time': '2:00 PM',
-  //     'duration': '30 min',
-  //     'type': 'call',
-  //     'color': Colors.green,
-  //   },
-  //   {
-  //     'id': '6',
-  //     'title': 'Client Call',
-  //     'description': 'Project discussion with client',
-  //     'date': DateTime.now().add(Duration(days: 1)),
-  //     'time': '2:00 PM',
-  //     'duration': '30 min',
-  //     'type': 'call',
-  //     'color': Colors.green,
-  //   },
-  //   {
-  //     'id': '7',
-  //     'title': 'Design Review',
-  //     'description': 'Review new UI designs',
-  //     'date': DateTime.now().add(Duration(days: 2)),
-  //     'time': '11:30 AM',
-  //     'duration': '45 min',
-  //     'type': 'review',
-  //     'color': Colors.orange,
-  //   },
-  //   {
-  //     'id': '8',
-  //     'title': 'Lunch with Sarah',
-  //     'description': 'Catch up over lunch',
-  //     'date': DateTime.now().add(Duration(days: 3)),
-  //     'time': '12:30 PM',
-  //     'duration': '1 hour',
-  //     'type': 'personal',
-  //     'color': Colors.purple,
-  //   },
-  // ];
+
 
   @override
   void dispose() {
@@ -203,9 +119,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           // Draggable Events Sheet
           DraggableScrollableSheet(
             controller: _sheetController,
-            initialChildSize: 0.38, // About 2.5 events visible
-            minChildSize: 0.38, // Just the handle and header
-            maxChildSize: 0.82, // Just under the month/year header
+            initialChildSize: 0.42, // About 2.5 events visible
+            minChildSize: 0.42, // Just the handle and header
+            maxChildSize: calendarState.getEventsForDate(selectedDate).isEmpty ? 0.42 : 0.82, // Just under the month/year header
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(

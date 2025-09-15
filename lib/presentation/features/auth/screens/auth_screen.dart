@@ -15,6 +15,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   String? userId;
+  bool _isSigningIn = false;
 
   @override
   void initState() {
@@ -28,6 +29,31 @@ class _AuthScreenState extends State<AuthScreen> {
         userId = event.session?.user.id;
       });
     });
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      await GoogleAuthService.signIn(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
+    }
   }
 
   @override
@@ -123,7 +149,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => GoogleAuthService.signIn(context),
+                        onTap: _isSigningIn ? null : _handleGoogleSignIn,
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: config.sw(20)),
                           child: Row(
@@ -135,14 +161,25 @@ class _AuthScreenState extends State<AuthScreen> {
                                 height: config.sh(24),
                               ),
                               XMargin(12),
-                              Text(
-                                "Continue with Google",
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontSize: config.sp(16),
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
+                              _isSigningIn
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          isDark ? Colors.white : Colors.blue.shade600,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      "Continue with Google",
+                                      style: textTheme.titleMedium?.copyWith(
+                                        fontSize: config.sp(16),
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
                             ],
                           ),
                         ),

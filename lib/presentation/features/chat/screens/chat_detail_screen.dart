@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taski/core/providers/messages_provider.dart';
+import 'package:taski/core/providers/sessions_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/chat/widgets/chat_message_widget.dart';
 import 'package:taski/presentation/widgets/dual_input_widget.dart';
 
-class ChatDetailScreen extends StatefulWidget {
+class ChatDetailScreen extends ConsumerStatefulWidget {
   final String query;
   final String response;
   final DateTime timestamp;
@@ -19,12 +22,11 @@ class ChatDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  ConsumerState<ChatDetailScreen> createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
   bool _isTyping = false;
 
@@ -32,30 +34,37 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void initState() {
     super.initState();
     // Initialize with the original conversation
-    _messages.addAll([
-      {
-        'id': '1',
-        'text': widget.query,
-        'isUser': true,
-        'timestamp': widget.timestamp,
-        'type': 'text',
-      },
-      {
-        'id': '2',
-        'text': widget.response,
-        'isUser': false,
-        'timestamp': widget.timestamp.add(Duration(seconds: 30)),
-        'type': 'text',
-      },
-      {
-        'id': '3',
-        'text': 'Voice message',
-        'isUser': true,
-        'timestamp': widget.timestamp.add(Duration(minutes: 1)),
-        'type': 'voice',
-        'duration': '02:12',
-      },
-    ]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      var currentSessionId = ref.read(sessionProvider).currentSessionId;
+      if (currentSessionId != null) {
+        ref.read(messagesProvider).getMessages(sessionId: currentSessionId);
+      }
+    });
+
+    // _messages.addAll([
+    //   {
+    //     'id': '1',
+    //     'text': widget.query,
+    //     'isUser': true,
+    //     'timestamp': widget.timestamp,
+    //     'type': 'text',
+    //   },
+    //   {
+    //     'id': '2',
+    //     'text': widget.response,
+    //     'isUser': false,
+    //     'timestamp': widget.timestamp.add(Duration(seconds: 30)),
+    //     'type': 'text',
+    //   },
+    //   {
+    //     'id': '3',
+    //     'text': 'Voice message',
+    //     'isUser': true,
+    //     'timestamp': widget.timestamp.add(Duration(minutes: 1)),
+    //     'type': 'voice',
+    //     'duration': '02:12',
+    //   },
+    // ]);
   }
 
   @override
@@ -64,48 +73,48 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.dispose();
   }
 
-  void _sendMessage(String message) {
-    if (message.trim().isEmpty) return;
+  // void _sendMessage(String message) {
+  //   if (message.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'text': message,
-        'isUser': true,
-        'timestamp': DateTime.now(),
-        'type': 'text',
-      });
-      _isLoading = true;
-      _isTyping = true;
-    });
+  //   setState(() {
+  //     _messages.add({
+  //       'id': DateTime.now().millisecondsSinceEpoch.toString(),
+  //       'text': message,
+  //       'isUser': true,
+  //       'timestamp': DateTime.now(),
+  //       'type': 'text',
+  //     });
+  //     _isLoading = true;
+  //     _isTyping = true;
+  //   });
 
-    _scrollToBottom();
+  //   _scrollToBottom();
 
-    // Simulate AI response
-    Future.delayed(Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
-        });
-      }
-    });
+  //   // Simulate AI response
+  //   Future.delayed(Duration(seconds: 1), () {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isTyping = false;
+  //       });
+  //     }
+  //   });
 
-    Future.delayed(Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add({
-            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-            'text': _generateAIResponse(message),
-            'isUser': false,
-            'timestamp': DateTime.now(),
-            'type': 'text',
-          });
-          _isLoading = false;
-        });
-        _scrollToBottom();
-      }
-    });
-  }
+  //   Future.delayed(Duration(seconds: 2), () {
+  //     if (mounted) {
+  //       setState(() {
+  //         _messages.add({
+  //           'id': DateTime.now().millisecondsSinceEpoch.toString(),
+  //           'text': _generateAIResponse(message),
+  //           'isUser': false,
+  //           'timestamp': DateTime.now(),
+  //           'type': 'text',
+  //         });
+  //         _isLoading = false;
+  //       });
+  //       _scrollToBottom();
+  //     }
+  //   });
+  // }
 
   String _generateAIResponse(String userMessage) {
     final message = userMessage.toLowerCase();
@@ -141,6 +150,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var _messages = ref.watch(messagesProvider).userMessages;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
     
@@ -176,21 +186,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           
                           final message = _messages[index];
                           final isLastMessage = index == _messages.length - 1;
-                          final showDate = index == 0 || _shouldShowDate(message['timestamp'], _messages[index - 1]['timestamp']);
+                          final showDate = index == 0 || _shouldShowDate(message.createdAt!, _messages[index - 1].createdAt!);
                           
                           return Column(
                             children: [
-                              // if (showDate) _buildDateDivider(message['timestamp']),
+                              // if (showDate) _buildDateDivider(message.createdAt!),
                               ChatMessageWidget(
-                                text: message['text'],
-                                isUser: message['isUser'],
-                                timestamp: message['timestamp'],
-                                isLastMessage: isLastMessage,
-                                messageType: message['type'],
-                                duration: message['duration'],
-                                onPlayVoice: message['type'] == 'voice' ? () {
-                                  // TODO: Implement voice playback
-                                  print('Playing voice message: ${message['text']}');
+                                text: message.content ?? '',
+                                isUser: message.isUser ?? false,
+                                timestamp: DateTime.now(),
+                                messageType: message.type ?? '',
+                                duration: '',
+                                onPlayVoice: message.type == 'voice' ? () {
+                                  print('Playing voice message: ${message.content}');
                                 } : null,
                               ),
                             ],

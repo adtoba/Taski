@@ -3,23 +3,15 @@ import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/main.dart';
 
 class ChatHistoryItemWidget extends StatelessWidget {
-  final String query;
-  final String response;
+  final String title;
   final DateTime timestamp;
-  final String type;
-  final bool isFavorite;
   final VoidCallback onTap;
-  final VoidCallback onFavorite;
 
   const ChatHistoryItemWidget({
     super.key,
-    required this.query,
-    required this.response,
+    required this.title,
     required this.timestamp,
-    required this.type,
-    required this.isFavorite,
     required this.onTap,
-    required this.onFavorite,
   });
 
   @override
@@ -76,7 +68,7 @@ class ChatHistoryItemWidget extends StatelessWidget {
                   children: [
                     // Query
                     Text(
-                      query,
+                      title,
                       style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                         fontSize: config.sp(14),
@@ -188,6 +180,9 @@ class ChatHistoryItemWidget extends StatelessWidget {
     final difference = now.difference(timestamp);
     
     if (difference.inMinutes < 60) {
+      if(difference.inMinutes == 0) {
+        return 'Just now';
+      }
       return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
       return '${difference.inHours}h ago';
