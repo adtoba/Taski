@@ -1,0 +1,4 @@
+enum AudioRecordingState {
+  recording,
+  notRecording
+}

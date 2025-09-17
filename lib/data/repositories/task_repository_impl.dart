@@ -34,7 +34,9 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<Either<Failure, List<TaskModel>>> getTasks() async {
     try {
-      final tasks = await FirestoreService.tasks().get();
+      final tasks = await FirestoreService.tasks()
+      .orderBy('createdAt', descending: true)
+      .get();
       var tasksList = tasks.docs.map((doc) => TaskModel.fromJson(doc.data() as Map<String, dynamic>)).toList();
       log("Tasks fetched");
       return right(tasksList);

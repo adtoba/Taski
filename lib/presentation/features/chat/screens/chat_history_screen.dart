@@ -17,73 +17,6 @@ class ChatHistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
-  // Sample chat history data
-  // final List<Map<String, dynamic>> _chatHistory = [
-  //   {
-  //     'id': '1',
-  //     'query': 'Direction to embassy of Indonesia',
-  //     'response': 'The embassy is located at 123 Main Street...',
-  //     'timestamp': DateTime.now().subtract(Duration(hours: 2)),
-  //     'type': 'location',
-  //     'isFavorite': false,
-  //   },
-  //   {
-  //     'id': '2',
-  //     'query': 'Contact number for the embassy of Indonesia',
-  //     'response': 'You can reach them at +1-234-567-8900...',
-  //     'timestamp': DateTime.now().subtract(Duration(hours: 4)),
-  //     'type': 'contact',
-  //     'isFavorite': true,
-  //   },
-  //   {
-  //     'id': '3',
-  //     'query': 'Operating hours of the embassy of Indonesia',
-  //     'response': 'The embassy is open Monday to Friday, 9 AM to 5 PM...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 1)),
-  //     'type': 'hours',
-  //     'isFavorite': false,
-  //   },
-  //   {
-  //     'id': '4',
-  //     'query': 'Website link for the embassy of Indonesia',
-  //     'response': 'You can visit their official website at...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 1, hours: 3)),
-  //     'type': 'website',
-  //     'isFavorite': false,
-  //   },
-  //   {
-  //     'id': '5',
-  //     'query': 'Email address for the embassy of Indonesia',
-  //     'response': 'You can email them at embassy@indonesia.gov...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 2)),
-  //     'type': 'contact',
-  //     'isFavorite': true,
-  //   },
-  //   {
-  //     'id': '6',
-  //     'query': 'Location of the embassy of Indonesia',
-  //     'response': 'The embassy is situated in the downtown area...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 3)),
-  //     'type': 'location',
-  //     'isFavorite': false,
-  //   },
-  //   {
-  //     'id': '7',
-  //     'query': 'Visa requirements for Indonesia',
-  //     'response': 'For tourist visas, you need a valid passport...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 5)),
-  //     'type': 'visa',
-  //     'isFavorite': true,
-  //   },
-  //   {
-  //     'id': '8',
-  //     'query': 'Document requirements for visa application',
-  //     'response': 'You will need to provide the following documents...',
-  //     'timestamp': DateTime.now().subtract(Duration(days: 6)),
-  //     'type': 'documents',
-  //     'isFavorite': false,
-  //   },
-  // ];
 
   @override
   void initState() {
@@ -95,6 +28,8 @@ class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isLoading = ref.watch(sessionProvider).isLoadingSessions;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sessions = ref.watch(sessionProvider).userSessions;
     final textTheme = Theme.of(context).textTheme;
     
@@ -114,6 +49,10 @@ class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
           IconButton(
             onPressed: () {
               // TODO: Search functionality
+              ref.read(sessionProvider).createSession(
+                title: "Event test",
+                createdAt: DateTime.now(),
+              );
             },
             icon: Icon(Icons.search),
           ),
@@ -128,34 +67,34 @@ class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
       body: Column(
         children: [
           // Header with search
-          // YMargin(20),
-        //  Container(
-        //     padding: EdgeInsets.symmetric(horizontal: config.sw(16), vertical: config.sh(12)),
-        //     margin: EdgeInsets.symmetric(horizontal: config.sw(20)),
-        //     decoration: BoxDecoration(
-        //       color: Colors.grey.shade50,
-        //       borderRadius: BorderRadius.circular(12),
-        //       border: Border.all(color: Colors.grey.shade200),
-        //     ),
-        //     child: Row(
-        //       children: [
-        //         Icon(Icons.search, color: Colors.grey.shade500, size: 20),
-        //         XMargin(8),
-        //         Expanded(
-        //           child: Text(
-        //             'Search conversations...',
-        //             style: textTheme.bodyMedium?.copyWith(
-        //               color: Colors.grey.shade500,
-        //             ),
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-          
+          // YMargin(20)
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: config.sw(20), vertical: config.sh(10)),
+            child: TextFormField(
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 20),
+                hintText: "Search conversations...",
+                filled: true,
+                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),  
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: (value) {
+                // TODO: Search functionality
+              },
+            ),
+          ),
+
           // Chat history list
           Expanded(
-            child: sessions.isEmpty
+            child: isLoading ? Center(child: CircularProgressIndicator()) : sessions.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

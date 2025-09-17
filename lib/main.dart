@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:taski/core/utils/dimensions.dart';
 import 'package:taski/firebase_options.dart';
@@ -11,6 +12,7 @@ import 'package:taski/presentation/features/dashboard/screens/dashboard_layout.d
 
 final config = SizeConfig();
 final navigatorKey = GlobalKey<NavigatorState>();
+final logger = Logger();
 
 void main() async {
   await dotenv.load(fileName: '.env');

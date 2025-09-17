@@ -60,7 +60,7 @@ class ChatMessage extends StatelessWidget {
                       bottomRight: isUser ? Radius.circular(4) : Radius.circular(18),
                     ),
                   ),
-                  child: Text(
+                  child: SelectableText(
                     text,
                     style: textTheme.bodyMedium?.copyWith(
                       fontSize: config.sp(14),

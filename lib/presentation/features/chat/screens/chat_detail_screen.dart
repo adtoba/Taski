@@ -26,9 +26,6 @@ class ChatDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoading = false;
-  bool _isTyping = false;
 
   @override
   void initState() {
@@ -40,119 +37,24 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         ref.read(messagesProvider).getMessages(sessionId: currentSessionId);
       }
     });
-
-    // _messages.addAll([
-    //   {
-    //     'id': '1',
-    //     'text': widget.query,
-    //     'isUser': true,
-    //     'timestamp': widget.timestamp,
-    //     'type': 'text',
-    //   },
-    //   {
-    //     'id': '2',
-    //     'text': widget.response,
-    //     'isUser': false,
-    //     'timestamp': widget.timestamp.add(Duration(seconds: 30)),
-    //     'type': 'text',
-    //   },
-    //   {
-    //     'id': '3',
-    //     'text': 'Voice message',
-    //     'isUser': true,
-    //     'timestamp': widget.timestamp.add(Duration(minutes: 1)),
-    //     'type': 'voice',
-    //     'duration': '02:12',
-    //   },
-    // ]);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  // void _sendMessage(String message) {
-  //   if (message.trim().isEmpty) return;
-
-  //   setState(() {
-  //     _messages.add({
-  //       'id': DateTime.now().millisecondsSinceEpoch.toString(),
-  //       'text': message,
-  //       'isUser': true,
-  //       'timestamp': DateTime.now(),
-  //       'type': 'text',
-  //     });
-  //     _isLoading = true;
-  //     _isTyping = true;
-  //   });
-
-  //   _scrollToBottom();
-
-  //   // Simulate AI response
-  //   Future.delayed(Duration(seconds: 1), () {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isTyping = false;
-  //       });
-  //     }
-  //   });
-
-  //   Future.delayed(Duration(seconds: 2), () {
-  //     if (mounted) {
-  //       setState(() {
-  //         _messages.add({
-  //           'id': DateTime.now().millisecondsSinceEpoch.toString(),
-  //           'text': _generateAIResponse(message),
-  //           'isUser': false,
-  //           'timestamp': DateTime.now(),
-  //           'type': 'text',
-  //         });
-  //         _isLoading = false;
-  //       });
-  //       _scrollToBottom();
-  //     }
-  //   });
-  // }
-
-  String _generateAIResponse(String userMessage) {
-    final message = userMessage.toLowerCase();
-    
-    if (message.contains('hello') || message.contains('hi')) {
-      return 'Hello! How can I help you today?';
-    } else if (message.contains('thank')) {
-      return 'You\'re welcome! Is there anything else I can help you with?';
-    } else if (message.contains('embassy') || message.contains('indonesia')) {
-      return 'I can help you with information about the Indonesian embassy. What specific information do you need?';
-    } else if (message.contains('visa')) {
-      return 'For visa information, you\'ll need to check the specific requirements based on your nationality and purpose of visit. Would you like me to help you find the relevant information?';
-    } else if (message.contains('contact') || message.contains('phone')) {
-      return 'You can contact the embassy at +1-234-567-8900 during their operating hours.';
-    } else if (message.contains('hours') || message.contains('time')) {
-      return 'The embassy is open Monday to Friday, 9:00 AM to 5:00 PM, excluding holidays.';
-    } else {
-      return 'I understand you\'re asking about "$userMessage". Let me help you find the most relevant information. Could you provide more details about what you need?';
-    }
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var _messages = ref.watch(messagesProvider).userMessages;
+    final isLoading = ref.watch(messagesProvider).isCompleteLoading;
+    var messages = ref.watch(messagesProvider).userMessages;
+    final scrollController = ref.watch(messagesProvider).scrollController;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    });
     
     return Scaffold(
       appBar: AppBar(
@@ -170,23 +72,23 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           children: [
             // Chat Messages
             Expanded(
-              child: _messages.isEmpty
+              child: messages.isEmpty
                   ? _buildEmptyState(textTheme)
                   : Container(
                       color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colors.grey.shade50,
                       child: ListView.separated(
                         separatorBuilder: (context, index) => YMargin(10),
-                        controller: _scrollController,
+                        controller: scrollController,
                         padding: EdgeInsets.symmetric(horizontal: config.sw(16), vertical: config.sh(8)),
-                        itemCount: _messages.length + (_isLoading ? 1 : 0),
+                        itemCount: messages.length + (isLoading ? 1 : 0),
                         itemBuilder: (context, index) {
-                          if (index == _messages.length && _isLoading) {
+                          if (index == messages.length && isLoading) {
                             return _buildTypingIndicator();
                           }
                           
-                          final message = _messages[index];
-                          final isLastMessage = index == _messages.length - 1;
-                          final showDate = index == 0 || _shouldShowDate(message.createdAt!, _messages[index - 1].createdAt!);
+                          final message = messages[index];
+                          final isLastMessage = index == messages.length - 1;
+                          final showDate = index == 0 || _shouldShowDate(message.createdAt!, messages[index - 1].createdAt!);
                           
                           return Column(
                             children: [

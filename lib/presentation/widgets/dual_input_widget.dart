@@ -71,15 +71,19 @@ class _DualInputWidgetState extends ConsumerState<DualInputWidget> {
                         child: TextField(
                           controller: _controller,
                           style: const TextStyle(fontSize: 18),
-                          onSubmitted: (value) {
-                            var messageProvider = ref.read(messagesProvider);
-                            messageProvider.sendMessage(
-                              sessionId: ref.read(sessionProvider).currentSessionId,
+                          onSubmitted: (value) async {
+                            final sessionId = ref.read(sessionProvider).currentSessionId;
+                            if (sessionId == null || value.trim().isEmpty) return;
+                            final messageProvider = ref.read(messagesProvider);
+
+                            messageProvider.sendUserMessageAndCompleteAssistant(
+                              sessionId: sessionId,
                               content: value,
-                              isUser: true,
-                              type: 'text',
+                              context: null,
                             );
+
                             _controller.clear();
+                            
                             setState(() => _mode = InputMode.none);
                           },
                           decoration: InputDecoration(

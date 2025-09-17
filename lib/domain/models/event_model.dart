@@ -28,4 +28,16 @@ class EventModel {
       attendees: json['attendees']?.map((e) => EventAttendee.fromJson(e)).toList(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'summary': summary,
+      'description': description,
+      'startDate': startDate,
+      'endDate': endDate,
+      'attendees': attendees,
+      'isConferenceCall': isConferenceCall,
+      'location': location,
+    };
+  }
 }

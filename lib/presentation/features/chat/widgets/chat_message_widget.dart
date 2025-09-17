@@ -139,7 +139,7 @@ class ChatMessageWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Message text
-        Text(
+        SelectableText(
           text,
           style: textTheme.bodyMedium?.copyWith(
             color: isUser ? Colors.white : isDark ? Colors.white : Colors.black87,
