@@ -30,4 +30,9 @@ class FirestoreService {
     final user = FirebaseAuth.instance.currentUser;
     return firestore.collection("users").doc(user?.uid).collection("messages");
   }
+  
+  static CollectionReference contacts() {
+    final user = FirebaseAuth.instance.currentUser;
+    return firestore.collection("users").doc(user?.uid).collection("contacts");
+  }
 }

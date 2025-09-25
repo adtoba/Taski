@@ -11,6 +11,7 @@ import 'package:taski/presentation/features/calendar/screens/calendar_screen.dar
 import 'package:taski/presentation/features/calendar/screens/event_detail_screen.dart';
 import 'package:taski/presentation/features/dashboard/widgets/action_widget.dart';
 import 'package:taski/presentation/features/dashboard/widgets/upcoming_widget.dart';
+import 'package:taski/presentation/widgets/base_screen.dart';
 import 'package:taski/presentation/widgets/dual_input_widget.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -23,30 +24,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  // Sample upcoming events data
-  final List<Map<String, dynamic>> _upcomingEvents = [
-    {
-      'title': 'Team Meeting',
-      'description': 'Weekly team sync and project updates',
-      'time': '10:00 AM',
-      'duration': '1 hour',
-      'color': Colors.blue,
-    },
-    {
-      'title': 'Client Call',
-      'description': 'Project discussion with client',
-      'time': '2:00 PM',
-      'duration': '30 min',
-      'color': Colors.green,
-    },
-    {
-      'title': 'Design Review',
-      'description': 'Review new UI designs with the team',
-      'time': '4:30 PM',
-      'duration': '45 min',
-      'color': Colors.orange,
-    },
-  ];
 
   @override
   void initState() {
@@ -58,11 +35,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var upcomingEvents = ref.watch(calendarProvider).upcomingEvents;
-    var isLoadingEvents = ref.watch(calendarProvider).isLoadingEvents;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      body: Padding(
+    return BaseScreen(
+      child: Padding(
         padding: EdgeInsets.symmetric(horizontal: config.sw(20), vertical: config.sh(20)),
         child: Column(
           children: [
@@ -105,61 +80,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   YMargin(10), // More space after title
                   // Upcoming Events List or Empty State
-                  isLoadingEvents ? 
-                  const Center(child: Padding(
-                    padding: EdgeInsets.all(30.0),
-                    child: CircularProgressIndicator(),
-                  )) 
-                   : upcomingEvents.isNotEmpty
-                      ? ListView.separated(
-                          padding: EdgeInsets.zero,
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemBuilder: (context, index) {
-                            final event = upcomingEvents[index];
-              
-                            final startTimeText = event.start?.dateTime != null ? DateFormat('h:mm a').format(event.start?.dateTime ?? DateTime.now()) : "All day";
-                            final startTime = event.start?.dateTime;
-                            final endTime = event.end?.dateTime;
-                            // Calculate duration
-                            String durationText = "";
-                            if (startTime != null && endTime != null) {
-                              final duration = endTime.difference(startTime);
-                              if (duration.inMinutes < 60) {
-                                durationText = "${duration.inMinutes} minutes";
-                              } else if (duration.inHours < 24) {
-                                durationText = "${duration.inHours} hour${duration.inHours > 1 ? 's' : ''}";
-                              } else {
-                                durationText = "${duration.inDays} day${duration.inDays > 1 ? 's' : ''}";
-                              }
-                            }
-                            return Semantics(
-                              label: "Upcoming event card",
-                              child: UpcomingWidget(
-                                title: event.summary ?? "",
-                                description: event.description ?? "",
-                                time: startTimeText,
-                                duration: event.end?.dateTime != null && event.start?.dateTime != null ? durationText : "All day",
-                                color: Colors.blue,
-                                onTap: () {
-                                  push(EventDetailScreen(event: event));
-                                },
-                              ),
-                            );
-                          },
-                          separatorBuilder: (context, index) => YMargin(5), // More space between cards
-                          itemCount: upcomingEvents.take(3).length,
-                        )
-                      : Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Text(
-                            "You have no events coming up. Enjoy your free time!",
-                            style: textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                            semanticsLabel: "No upcoming events or reminders",
-                          ),
-                        ), // More space before actions
-                  // Action Buttons
+                  _upcomingEventsList(),
                   YMargin(30),
                   Text(
                     "What would you like to do?",
@@ -218,12 +139,74 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ],
               ),
             ),
-            YMargin(30),
-            DualInputWidget(),
-            YMargin(60)
           ],
         ),
       ),
     );
+  }
+
+  Widget _upcomingEventsList() {
+    var upcomingEvents = ref.watch(calendarProvider).upcomingEvents;
+    var isLoadingEvents = ref.watch(calendarProvider).isLoadingEvents;
+    final textTheme = Theme.of(context).textTheme;
+
+    if(isLoadingEvents) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(30.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else if(upcomingEvents.isNotEmpty) {
+      return ListView.separated(
+        padding: EdgeInsets.zero,
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          final event = upcomingEvents[index];
+
+          final startTimeText = event.start?.dateTime != null ? DateFormat('h:mm a').format(event.start?.dateTime ?? DateTime.now()) : "All day";
+          final startTime = event.start?.dateTime;
+          final endTime = event.end?.dateTime;
+          // Calculate duration
+          String durationText = "";
+          if (startTime != null && endTime != null) {
+            final duration = endTime.difference(startTime);
+            if (duration.inMinutes < 60) {
+              durationText = "${duration.inMinutes} minutes";
+            } else if (duration.inHours < 24) {
+              durationText = "${duration.inHours} hour${duration.inHours > 1 ? 's' : ''}";
+            } else {
+              durationText = "${duration.inDays} day${duration.inDays > 1 ? 's' : ''}";
+            }
+          }
+          return Semantics(
+            label: "Upcoming event card",
+            child: UpcomingWidget(
+              title: event.summary ?? "",
+              description: event.description ?? "",
+              time: startTimeText,
+              duration: event.end?.dateTime != null && event.start?.dateTime != null ? durationText : "All day",
+              color: Colors.blue,
+              onTap: () {
+                push(EventDetailScreen(event: event));
+              },
+            ),
+          );
+        },
+        separatorBuilder: (context, index) => YMargin(5), // More space between cards
+        itemCount: upcomingEvents.take(3).length,
+      );
+    } else {
+      return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Text(
+          "You have no events coming up. Enjoy your free time!",
+          style: textTheme.bodyMedium?.copyWith(color: Colors.grey),
+          semanticsLabel: "No upcoming events or reminders",
+        ),
+      );
+    }
   }
 }

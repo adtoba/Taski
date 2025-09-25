@@ -5,6 +5,7 @@ import 'package:taski/core/utils/spacer.dart';
 import 'package:taski/domain/dto/create_task_dto.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/tasks/widgets/task_widget.dart';
+import 'package:taski/presentation/widgets/base_screen.dart';
 import 'package:taski/presentation/widgets/dual_input_widget.dart';
 import 'package:taski/presentation/features/tasks/screens/task_detail_screen.dart';
 
@@ -99,8 +100,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
     
-    return Scaffold(
-      body: Column(
+    return BaseScreen(
+      child: Column(
         children: [
           // Enhanced Header with better styling
           Container(
@@ -306,90 +307,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
                                 onTap: () => _navigateToTaskDetail(index, false),
                               );
                             },
-                          ),
-                    
-                    // Enhanced Bottom Action Area
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, -4),
-                            ),
-                          ],
-                        ),
-                        child: SafeArea(
-                          top: false,
-                          child: Padding(
-                            padding: EdgeInsets.all(config.sw(20)),
-                            child: Column(
-                              children: [
-                                if (_selectedTaskIndices.isNotEmpty) ...[
-                                  Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade600,
-                                          Colors.blue.shade700,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.blue.withOpacity(0.3),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: _markSelectedAsCompleted,
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: config.sh(16),
-                                            horizontal: config.sw(20),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.check_circle_outline,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                              XMargin(8),
-                                              Text(
-                                                "Mark ${_selectedTaskIndices.length} task${_selectedTaskIndices.length == 1 ? '' : 's'} as completed",
-                                                style: textTheme.titleMedium?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  YMargin(16),
-                                ],
-                                DualInputWidget(),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                          ),                    
                   ],
                 ),
                 
@@ -476,30 +394,6 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
                               onTap: () => _navigateToTaskDetail(index, true),
                             );
                           },
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, -4),
-                                ),
-                              ],
-                            ),
-                            child: SafeArea(
-                              top: false,
-                              child: Padding(
-                                padding: EdgeInsets.all(config.sw(20)),
-                                child: DualInputWidget(),
-                              ),
-                            ),
-                          ),
                         ),
                       ],
                     ),

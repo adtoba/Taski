@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
       title: 'Taski',
       darkTheme: ThemeData(
         brightness: Brightness.dark,
+        primaryColor: const Color(0xFF2563EB),
         appBarTheme: AppBarTheme(
           backgroundColor: const Color(0xFF1E1E1E),
           surfaceTintColor: const Color(0xFF1A1A1A),
@@ -87,7 +88,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       theme: ThemeData(
         brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primaryColor: const Color(0xFF2563EB),
         useMaterial3: true,
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.white,

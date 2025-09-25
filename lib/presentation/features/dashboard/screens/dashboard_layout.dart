@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:taski/core/utils/navigator.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/chat/screens/chat_history_screen.dart';
+import 'package:taski/presentation/features/contacts/screens/contacts_screen.dart';
 import 'package:taski/presentation/features/dashboard/screens/dashboard_screen.dart';
 import 'package:taski/presentation/features/dashboard/widgets/side_menu.dart';
 import 'package:taski/presentation/features/notifications/screens/notifications_screen.dart';
@@ -40,8 +41,10 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       case 4:
         return "Profile";
       case 5:
-        return "Help";
+        return "Contacts";
       case 6:
+        return "Help";
+      case 7:
         return "Settings";
       default:
         return "Dashboard";
@@ -140,6 +143,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             ),
           ),
           ProfileScreen(),
+          ContactsScreen(),
           Container(
             child: Center(
               child: Text(
