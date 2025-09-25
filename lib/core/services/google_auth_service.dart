@@ -17,12 +17,15 @@ class GoogleAuthService {
   static final firebaseAuth = FirebaseAuth.instance;
 
   static Future<void> signIn(BuildContext context) async {
+
+    await _googleSignIn.signOut(); 
     try {
-      List<String> scopes = [
+      List<String> scopes = [     
+        'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/gmail.send',   
         'openid',
         'email',
-        'profile',
       ];
 
       final iosClientId = dotenv.env['IOS_CLIENT_ID'];
@@ -31,7 +34,7 @@ class GoogleAuthService {
       if (iosClientId == null || webClientId == null) {
         throw 'Google Sign-In configuration is missing. Please check your environment variables.';
       }
-
+    
       _googleSignIn.initialize(
         clientId: iosClientId,
         serverClientId: webClientId,
@@ -45,6 +48,7 @@ class GoogleAuthService {
       final googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
 
+     
       if (idToken == null) {
         throw 'Failed to get authentication token. Please try again.';
       }
@@ -55,6 +59,31 @@ class GoogleAuthService {
       );
       
       await firebaseAuth.signInWithCredential(credential);
+        
+      // Request accessToken for gmail.send
+      final bool needsInteraction = _googleSignIn.authorizationRequiresUserInteraction();
+
+    String? accessToken;
+    if (needsInteraction) {
+      // Interactive authorization (prompts user)
+      final GoogleSignInClientAuthorization? authorization = await googleUser
+          .authorizationClient
+          .authorizeScopes(scopes);
+      accessToken = authorization?.accessToken;
+    } else {
+      // Silent authorization
+      final GoogleSignInClientAuthorization? authorization = await googleUser
+          .authorizationClient
+          .authorizationForScopes(scopes);
+      accessToken = authorization?.accessToken;
+    }
+
+    if (accessToken != null) {
+      logger.i('Access Token: $accessToken');
+      // Test the Gmail API
+    } else {
+      print('Failed to get access token');
+    }
  
 
       // // Sign in to Supabase with Google token
@@ -96,13 +125,14 @@ class GoogleAuthService {
       } else {
         errorMessage = 'An unexpected error occurred: ${e.toString()}';
       }
-      log('Error: $errorMessage');
+      logger.e("Error: $errorMessage");
       
       if (context.mounted) {
         _showErrorDialog(context, 'Authentication Error', errorMessage);
       }
     }
   }
+
 
   static void _showErrorDialog(BuildContext context, String title, String message) {
     showDialog(
@@ -132,9 +162,9 @@ class GoogleAuthService {
 
   static Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      await GoogleSignIn.instance.signOut();
+      await GoogleSignIn.instance.disconnect();
       await firebaseAuth.signOut();
-      await supabase.auth.signOut();
     } catch (e) {
       print('Error during sign out: $e');
     }

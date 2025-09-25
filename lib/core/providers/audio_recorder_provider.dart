@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_sound/public/flutter_sound_player.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:taski/core/constants/enums.dart';
 import 'package:taski/core/services/audio_recorder_service.dart';
 import 'package:taski/core/di/globals.dart';
@@ -26,6 +29,9 @@ class AudioRecorderProvider extends ChangeNotifier {
   AudioRecordingState _recordingState = AudioRecordingState.notRecording;
   AudioRecordingState get recordingState => _recordingState;
 
+  final FlutterSoundPlayer _player = FlutterSoundPlayer();
+  FlutterSoundPlayer get player => _player;
+
   int _timerCount = 0;
   int get timerCount => _timerCount;
 
@@ -35,6 +41,7 @@ class AudioRecorderProvider extends ChangeNotifier {
   void startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _timerCount++;
+      _recordingDuration = Duration(seconds: _timerCount);
       notifyListeners();
     });
   }
@@ -46,6 +53,8 @@ class AudioRecorderProvider extends ChangeNotifier {
   }
 
   void cancelTimer() {
+    _timerCount = 0;
+    _recordingDuration = Duration.zero;
     _timer?.cancel();
     notifyListeners();
   }
@@ -66,11 +75,11 @@ class AudioRecorderProvider extends ChangeNotifier {
   }
   
 
-  Future<void> start() async {
+  Future<void> startRecording() async {
     await _audioRecorderService.startRecording();
   }
 
-  Future<void> stop() async {
+  Future<void> stopRecording() async {
     await _audioRecorderService.stopRecording();
   }
 
@@ -88,6 +97,41 @@ class AudioRecorderProvider extends ChangeNotifier {
 
   Future<void> play() async {
     await _audioRecorderService.playRecording();
+  }
+
+  Future<void> playAudio({String? url, String? path}) async {
+    try {
+      if(!_player.isOpen()) {
+        await _player.openPlayer();
+      }
+
+      String? uri;
+
+      if(path == null) {
+        uri = url;
+      } else if(path.isNotEmpty) {
+        final file = File(path);
+
+        logger.i('File path: ${file.path}');
+        logger.i('File exists: ${file.existsSync()}');
+
+        if(file.existsSync()) {
+          uri = file.path;
+        } else {
+          uri = url;
+        }
+      } else {
+        uri = url;
+      }
+
+      await _player.startPlayer(
+        fromURI: uri!,
+      );
+      
+      
+    } catch (e) {
+      logger.e('Error playing audio: $e');
+    }
   }
 
   Future<void> disposeRecorder() async {

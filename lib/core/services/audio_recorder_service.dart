@@ -1,8 +1,11 @@
+import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:taski/core/constants/enums.dart';
 import 'package:taski/core/providers/audio_recorder_provider.dart';
+import 'package:taski/core/providers/messages_provider.dart';
+import 'package:taski/core/services/openai_service.dart';
 import 'package:taski/main.dart';
 
 abstract class AudioRecorderService {
@@ -16,6 +19,7 @@ abstract class AudioRecorderService {
 
 class AudioRecorderServiceImpl implements AudioRecorderService {
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final FlutterSoundPlayer _player = FlutterSoundPlayer();
 
   AudioRecorderServiceImpl._();
 
@@ -30,17 +34,12 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
   Future<String>  preparePath() async {
     if(_mPath == null) {
       final dir = await getTemporaryDirectory();
-      _mPath = "${dir.path}/${DateTime.now().millisecondsSinceEpoch}.aac";
+      _mPath = "${dir.path}/${DateTime.now().millisecondsSinceEpoch}.mp4";
     }
     return _mPath!;
   }
 
   Future<void> openRecorder() async {
-    var status = await Permission.microphone.request();
-    if(status != PermissionStatus.granted) {
-      throw Exception("Microphone permission not granted");
-    }
-
     if(!isInitialized) {
       await _recorder.openRecorder();
       isInitialized = true;
@@ -55,6 +54,11 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
 
     if(_recorder.isRecording) return;
 
+    if(!await ensureMicPermission()) {
+      logger.e("Microphone permission not granted");
+      return;
+    }
+
     await preparePath();
 
     // Reset the recording duration
@@ -66,7 +70,7 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
     try {
       await _recorder.startRecorder(
         toFile: _mPath,
-        codec: Codec.aacADTS,
+        codec: Codec.aacMP4,
       );
     } catch (e) {
       logger.e("Error starting recorder:", error: e);
@@ -79,6 +83,10 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
   Future<void> stopRecording() async {
     try {
       await _recorder.stopRecorder();
+      await messageProvider.sendUserMessageAndUploadAudio(
+        filePath: _mPath!,
+      );
+
       audioRecorderProvider.cancelTimer();
       audioRecorderProvider.updateRecordingState(AudioRecordingState.notRecording);
       audioRecorderProvider.forceNotify();
@@ -101,9 +109,15 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
   }
 
   @override
-  Future<void> playRecording() {
-    // TODO: implement playRecording
-    throw UnimplementedError();
+  Future<void> playRecording() async {
+    await _player.openPlayer();
+    await _player.startPlayer(
+      fromURI: _mPath!,
+      codec: Codec.aacADTS,
+    );
+
+    await _player.setVolume(1.0);
+    await _player.setSpeed(1.0);
   }
 
   @override
@@ -112,8 +126,27 @@ class AudioRecorderServiceImpl implements AudioRecorderService {
     throw UnimplementedError();
   }
 
-  
+  Future<bool> ensureMicPermission() async {
+    final status = await Permission.microphone.status;
+    logger.d("Microphone permission status: $status");
 
-  
+    if (status.isGranted) return true;
+
+    if (status.isDenied) {
+      logger.d("Microphone permission is denied");
+      final req = await Permission.microphone.request();
+      logger.d("Microphone permission request status: ${req.isGranted}");
+      return req.isGranted;
+    }
+
+    if (status.isPermanentlyDenied || status.isRestricted) {
+      // Show UI telling the user to enable mic in Settings, then:
+      await openAppSettings();
+      // Optionally re-check after returning from settings:
+      return (await Permission.microphone.status).isGranted;
+    }
+
+    return false;
+  }
 
 }

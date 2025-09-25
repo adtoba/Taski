@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:taski/core/providers/audio_recorder_provider.dart';
 import 'package:taski/core/providers/messages_provider.dart';
 import 'package:taski/core/providers/sessions_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
@@ -22,6 +24,7 @@ class _DualInputWidgetState extends ConsumerState<DualInputWidget> {
 
   @override
   Widget build(BuildContext context) {
+    var audioRecorderProvider = ref.watch(audioRecorderProviderRef);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
@@ -42,7 +45,10 @@ class _DualInputWidgetState extends ConsumerState<DualInputWidget> {
                   XMargin(20),
                   _CircleButton(
                     icon: Icons.mic,
-                    onTap: () => setState(() => _mode = InputMode.mic),
+                    onTap: () async {
+                      setState(() => _mode = InputMode.mic);
+                      audioRecorderProvider.startRecording();
+                    },
                     backgroundColor: primaryColor,
                     borderColor: Colors.transparent,
                     iconColor: Colors.white,
@@ -126,14 +132,17 @@ class _DualInputWidgetState extends ConsumerState<DualInputWidget> {
                         children: [
                           Icon(Icons.mic, color: Colors.red, size: 32),
                           const SizedBox(width: 12),
-                          Text('Listening...', style: TextStyle(color: Colors.red, fontSize: 18, fontWeight: FontWeight.w500)),
+                          Text('Listening... (${audioRecorderProvider.recordingDuration.inSeconds})s', style: TextStyle(color: Colors.red, fontSize: 18, fontWeight: FontWeight.w500)),
                         ],
                       ),
                     ),
                     const SizedBox(width: 12),
                     _CircleButton(
                       icon: Icons.close,
-                      onTap: () => setState(() => _mode = InputMode.none),
+                      onTap: () {
+                        setState(() => _mode = InputMode.none);
+                        audioRecorderProvider.stopRecording();
+                      },
                       backgroundColor: Colors.white,
                       borderColor: borderColor,
                       iconColor: primaryColor,

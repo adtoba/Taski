@@ -50,7 +50,7 @@ class _ChatHistoryScreenState extends ConsumerState<ChatHistoryScreen> {
             onPressed: () {
               // TODO: Search functionality
               ref.read(sessionProvider).createSession(
-                title: "Event test",
+                title: "New Session for Testing",
                 createdAt: DateTime.now(),
               );
             },

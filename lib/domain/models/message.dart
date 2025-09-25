@@ -4,9 +4,10 @@ class ChatMessage {
   final String? content;
   final String? type;
   final bool? isUser;
+  final String? path;
   final DateTime? createdAt;
 
-  ChatMessage({this.sessionId, this.id, this.content, this.type, this.isUser, this.createdAt});
+  ChatMessage({this.sessionId, this.id, this.content, this.type, this.isUser, this.createdAt, this.path});
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
@@ -16,6 +17,7 @@ class ChatMessage {
       type: json['type'],
       isUser: json['isUser'],
       createdAt: DateTime.parse(json['createdAt'].toString()),
+      path: json['path'],
     );
   }
 
@@ -27,6 +29,7 @@ class ChatMessage {
       'type': type,
       'isUser': isUser,
       'createdAt': createdAt,
+      'path': path,
     };
   }
 }

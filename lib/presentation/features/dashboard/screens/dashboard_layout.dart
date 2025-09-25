@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:taski/core/utils/navigator.dart';
 import 'package:taski/main.dart';
 import 'package:taski/presentation/features/chat/screens/chat_history_screen.dart';
@@ -44,6 +46,17 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       default:
         return "Dashboard";
     }
+  }
+
+  @override
+  void initState() {
+    Permission.microphone.request();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      FirebaseAuth.instance.currentUser?.getIdToken().then((val) {
+        logger.i("User Token: $val");
+      });
+    });
+    super.initState();
   }
 
   @override

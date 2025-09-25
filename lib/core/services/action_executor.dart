@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:googleapis/calendar/v3.dart' show EventAttendee;
 import 'package:taski/core/services/firestore_service.dart';
@@ -160,42 +162,113 @@ class ActionExecutor {
   }
 
   static Future<String> _sendEmailNow(Map<String, dynamic> a) async {
-    final to = (a['to'] as List?)?.cast<dynamic>().map((e) => e.toString()).where((s) => s.contains('@')).toList() ?? <String>[];
-    final subject = (a['subject'] ?? '').toString();
-    final body = (a['body_markdown'] ?? '').toString();
-    if (to.isEmpty || subject.isEmpty || body.isEmpty) {
-      return 'I need recipients, subject, and body to send the email.';
-    }
-    final url = dotenv.env['MAKE_SEND_EMAIL_WEBHOOK'];
-    if (url == null || url.isEmpty) {
-      return 'Email send webhook is not configured.';
-    }
-    final res = await http.post(Uri.parse(url), headers: { 'Content-Type': 'application/json' }, body: jsonEncode({ 'to': to, 'subject': subject, 'body_markdown': body }));
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      return 'Email sent to ${to.join(', ')} with subject "$subject".';
-    }
-    return 'Failed to send email (status ${res.statusCode}).';
+    logger.d('Sending email now: $a');
+
+    try {
+      final to = (a['to'] as List?)?.cast<dynamic>().map((e) => e.toString()).where((s) => s.contains('@')).toList() ?? <String>[];
+      final subject = (a['subject'] ?? '').toString();
+      final body = (a['body_markdown'] ?? '').toString();
+      if (to.isEmpty || subject.isEmpty || body.isEmpty) {
+        return 'I need recipients, subject, and body to send the email.';
+      }
+      final url = dotenv.env['SEND_EMAIL_ENDPOINT'];
+      if (url == null || url.isEmpty) {
+        return 'Email send endpoint is not configured.';
+      }
+
+      final googleSignIn = GoogleSignIn.instance;
+      List<String> scopes = [     
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/gmail.send',   
+        'openid',
+        'email',  
+      ];
+      final authorization = await googleSignIn.authorizationClient.authorizationForScopes(scopes);
+      final accessToken = authorization?.accessToken;
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+
+      var reqBody = jsonEncode({
+        "raw": base64.encode(utf8.encode("From: ${firebaseUser?.email}\r\nTo: ${to.join(', ')}\r\nSubject: $subject\r\n\r\n$body"))
+      });
+
+      logger.d('Request body: $reqBody');
+    
+      final res = await http.post(
+        Uri.parse(url), 
+        headers: {
+          'Content-Type': 'application/json', 
+          'Authorization': 'Bearer $accessToken'
+        }, 
+        body: reqBody
+      );
+      
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        logger.d('Email sent successfully');
+        return 'Email sent to ${to.join(', ')} with subject "$subject".';
+      }
+      logger.e('Failed to send email (status ${res.statusCode}).');
+      return 'Failed to send email (status ${res.statusCode}).';
+      
+    } catch (e) {
+      logger.e('Failed to send email (error: $e).');
+      return 'Failed to send email (error: $e).';
+    }    
   }
 
   static Future<String> _scheduleEmail(Map<String, dynamic> a) async {
-    final to = (a['to'] as List?)?.cast<dynamic>().map((e) => e.toString()).where((s) => s.contains('@')).toList() ?? <String>[];
-    final subject = (a['subject'] ?? '').toString();
-    final body = (a['body_markdown'] ?? '').toString();
-    final sendAt = (a['send_at'] ?? '').toString();
-    if (to.isEmpty || subject.isEmpty || body.isEmpty || sendAt.isEmpty) {
-      return 'I need recipients, subject, body, and send_at to schedule the email.';
-    }
-    // Validate datetime
-    try { DateTime.parse(sendAt); } catch (_) { return 'The send_at time is not a valid ISO 8601 value.'; }
+    try {
+      final to = (a['to'] as List?)?.cast<dynamic>().map((e) => e.toString()).where((s) => s.contains('@')).toList() ?? <String>[];
+      final subject = (a['subject'] ?? '').toString();
+      final body = (a['body_markdown'] ?? '').toString();
+      final sendAt = (a['send_at'] ?? '').toString();
+      if (to.isEmpty || subject.isEmpty || body.isEmpty || sendAt.isEmpty) {
+        return 'I need recipients, subject, body, and send_at to schedule the email.';
+      }
+      // Validate datetime
+      try { DateTime.parse(sendAt); } catch (_) { return 'The send_at time is not a valid ISO 8601 value.'; }
 
-    final url = dotenv.env['MAKE_SCHEDULE_EMAIL_WEBHOOK'];
-    if (url == null || url.isEmpty) {
-      return 'Email schedule webhook is not configured.';
+      final url = dotenv.env['MAKE_SCHEDULE_EMAIL_WEBHOOK'];
+      if (url == null || url.isEmpty) {
+        return 'Email schedule webhook is not configured.';
+      }
+
+      final googleSignIn = GoogleSignIn.instance;
+      List<String> scopes = [     
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/gmail.send',   
+        'openid',
+        'email',  
+      ];
+      final authorization = await googleSignIn.authorizationClient.authorizationForScopes(scopes);
+      final accessToken = authorization?.accessToken;
+
+      final res = await http.post(
+        Uri.parse(url), 
+        headers: {
+          'Content-Type': 'application/json'
+        }, 
+        body: jsonEncode({
+          "user_email": FirebaseAuth.instance.currentUser?.email,
+          "to": to.join(', '), 
+          "subject": subject,
+          "body": body,
+          "scheduled_time": sendAt,
+          "access_token": accessToken
+        }));
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        logger.d('Email scheduled successfully');
+        return 'Email scheduled to ${to.join(', ')} for $sendAt with subject "$subject".';
+      }
+
+      return 'Failed to schedule email (status ${res.statusCode}).';
+    } catch (e) {
+      logger.e('Failed to schedule email (error: $e).');
+      return 'Failed to schedule email (error: $e).';
     }
-    final res = await http.post(Uri.parse(url), headers: { 'Content-Type': 'application/json' }, body: jsonEncode({ 'to': to, 'subject': subject, 'body_markdown': body, 'send_at': sendAt }));
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      return 'Email scheduled to ${to.join(', ')} for $sendAt with subject "$subject".';
-    }
-    return 'Failed to schedule email (status ${res.statusCode}).';
+
+    
   }
 } 

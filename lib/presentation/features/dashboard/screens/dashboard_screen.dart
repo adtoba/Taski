@@ -218,9 +218,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ],
               ),
             ),
-            Spacer(),
+            YMargin(30),
             DualInputWidget(),
-            YMargin(20)
+            YMargin(60)
           ],
         ),
       ),

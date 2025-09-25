@@ -9,6 +9,10 @@ import '../../domain/models/session.dart';
 
 class SessionProvider extends ChangeNotifier {
 
+  Ref ref;
+
+  SessionProvider(this.ref);
+
   List<Session> userSessions = [];
 
   String? currentSessionId;
@@ -61,8 +65,18 @@ class SessionProvider extends ChangeNotifier {
     }
     return null;
   }
+
+  Future<void> createSessionAndSendMessage() async {
+    final sessionId = await createSession(title: "New Session", createdAt: DateTime.now());
+
+    if(sessionId != null) {
+      
+    }
+  }
 }
 
+
+
 final sessionProvider = ChangeNotifierProvider<SessionProvider>((ref) {
-  return SessionProvider();
+  return SessionProvider(ref);
 });

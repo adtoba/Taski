@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "130946680957-fvkathqags3edmat9ia5umbqa4ld376r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.taski.taski",
+            "certificate_hash": "1557c18c7fba19c3ecbb9698634a6beee0a47b07"
+          }
+        },
+        {
           "client_id": "130946680957-eavmtjqicfevpc56rud36h50i3jl0r21.apps.googleusercontent.com",
           "client_type": 3
         }

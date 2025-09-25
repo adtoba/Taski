@@ -65,6 +65,8 @@ class AiService {
       'stream': true,
     });
 
+    
+
     final response = await request.send();
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final body = await response.stream.bytesToString();
@@ -143,12 +145,15 @@ class AiService {
       final text = m['text'] ?? '';
       if (text.isEmpty) continue;
       final type = role == 'assistant' ? 'output_text' : 'input_text';
-      input.add({
+      var inp = {
         'role': role,
         'content': [
           {'type': type, 'text': text}
         ]
-      });
+      };
+      input.add(inp);
+
+      logger.i("OpenAI request: $inp");
     }
     input.add({
       'role': 'user',
@@ -162,6 +167,9 @@ class AiService {
       'input': input,
       'stream': false,
     });
+
+
+    logger.d("OpenAI request: $body");
 
     final res = await http.post(uri, headers: headers, body: body);
     if (res.statusCode < 200 || res.statusCode >= 300) {

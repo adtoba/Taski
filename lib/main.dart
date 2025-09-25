@@ -1,3 +1,4 @@
+import 'package:dart_openai/dart_openai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:taski/core/di/globals.dart';
 import 'package:taski/core/utils/dimensions.dart';
 import 'package:taski/firebase_options.dart';
 import 'package:taski/presentation/features/auth/screens/auth_screen.dart';
@@ -18,6 +20,8 @@ void main() async {
   await dotenv.load(fileName: '.env');
   WidgetsFlutterBinding.ensureInitialized();
 
+  init();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -27,6 +31,9 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+
+  OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -77,7 +84,7 @@ class MyApp extends StatelessWidget {
           )
         ),
       ),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       theme: ThemeData(
         brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -131,6 +138,7 @@ class MyApp extends StatelessWidget {
         builder: (context) {
           SizeConfig.init(context);
           final user = FirebaseAuth.instance.currentUser;
+          logger.d("User: $user");
           if (user != null) {
             return const DashboardLayout();
           }

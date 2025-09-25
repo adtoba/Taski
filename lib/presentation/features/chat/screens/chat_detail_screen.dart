@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taski/core/providers/audio_recorder_provider.dart';
 import 'package:taski/core/providers/messages_provider.dart';
 import 'package:taski/core/providers/sessions_provider.dart';
 import 'package:taski/core/utils/spacer.dart';
@@ -46,6 +47,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isFetchingMessages = ref.watch(messagesProvider).isFetchingMessages;
     final isLoading = ref.watch(messagesProvider).isCompleteLoading;
     var messages = ref.watch(messagesProvider).userMessages;
     final scrollController = ref.watch(messagesProvider).scrollController;
@@ -72,7 +74,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           children: [
             // Chat Messages
             Expanded(
-              child: messages.isEmpty
+              child: isFetchingMessages ? _buildLoadingState() : messages.isEmpty
                   ? _buildEmptyState(textTheme)
                   : Container(
                       color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colors.grey.shade50,
@@ -84,12 +86,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                         itemBuilder: (context, index) {
                           if (index == messages.length && isLoading) {
                             return _buildTypingIndicator();
-                          }
-                          
+                          } 
                           final message = messages[index];
-                          final isLastMessage = index == messages.length - 1;
-                          final showDate = index == 0 || _shouldShowDate(message.createdAt!, messages[index - 1].createdAt!);
-                          
                           return Column(
                             children: [
                               // if (showDate) _buildDateDivider(message.createdAt!),
@@ -99,8 +97,11 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                 timestamp: DateTime.now(),
                                 messageType: message.type ?? '',
                                 duration: '',
-                                onPlayVoice: message.type == 'voice' ? () {
-                                  print('Playing voice message: ${message.content}');
+                                onPlayVoice: message.type == 'audio' ? () {
+                                  audioRecorderProvider.playAudio(
+                                    url: message.content,
+                                    path: message.path ?? '',
+                                  );
                                 } : null,
                               ),
                             ],
@@ -124,6 +125,12 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: CircularProgressIndicator(),
     );
   }
 
